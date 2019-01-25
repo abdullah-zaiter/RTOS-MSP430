@@ -25,26 +25,69 @@ void taskIDLE(void)
     __low_power_mode_0();
 }
 
-void taskA(void)
+
+// finaliza todas as tasks de MID e MAX priority
+void taskB(void)
 {
-    while(P1IN & BIT1); // em intervalos periódicos
+    while(P2IN & BIT1);
     __delay_cycles(160000);
-    P4OUT ^= (BIT7);
-    while(!(P1IN & BIT1));
-    __delay_cycles(160000);
+    while(fifos[MAX_PRIORITY].size){
+        task aux = fifoGet(&fifos[MAX_PRIORITY]);
+        aux.finished = 1;
+    }
+    while(fifos[MID_PRIORITY].size){
+        task aux = fifoGet(&fifos[MID_PRIORITY]);
+        aux.finished = 1;
+    }
+    running_task.finished = 1;
+    for(;;);
+
+}
+
+//LED 1 pisca por um tempo e para
+void taskC(void)
+{
+    uint16_t i = 100;
+
+    while(i--)
+    {
+        uint16_t counter = 25000;
+        while(counter--);
+        P1OUT ^= (BIT0);
+    }
+
+    P1OUT &= ~(BIT0);
     running_task.finished = 1;
     for(;;);
 }
 
-void taskB(void)
+//LED 2 pisca por um tempo e para
+void taskD(void)
 {
-    while(P2IN & BIT1); // em intervalos periódicos
-    __delay_cycles(160000);
-    P1OUT ^= (BIT0);
-    while(!(P2IN & BIT1));
-    __delay_cycles(160000);
+    uint16_t i = 250;
+
+    while(i--)
+    {
+        uint16_t counter = 10000;
+        while(counter--);
+        P4OUT ^= (BIT7);
+    }
+
+    P4OUT &= ~(BIT7);
     running_task.finished = 1;
     for(;;);
+}
+
+//Registra as tasks que controlam os leds
+void taskA(void)
+{
+    while(1)
+    {
+        while(P1IN & BIT1);
+        __delay_cycles(160000);
+        registerTask(taskC,MAX_PRIORITY,10);
+        registerTask(taskD,MAX_PRIORITY,10);
+    }
 }
 
 void config(void)
@@ -81,7 +124,7 @@ void config(void)
 int main(void)
 {
     config();
-    registerTask(taskA,MAX_PRIORITY,100);
+    registerTask(taskA,MID_PRIORITY,100);
     registerTask(taskB,MID_PRIORITY,100);
     registerTask(taskIDLE,MIN_PRIORITY,1);
     running_task = fifoGet(&fifos[MAX_PRIORITY]);
