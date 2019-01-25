@@ -1,5 +1,3 @@
-
-#include <msp430.h>
 #include "inc/clock.h"
 #include "inc/pmm.h"
 #include "inc/fifo_scheduler.h"

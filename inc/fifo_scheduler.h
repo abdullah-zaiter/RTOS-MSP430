@@ -8,9 +8,8 @@
 #ifndef FIFO_SCHEDULER_H_
 #define FIFO_SCHEDULER_H_
 
+#include <msp430.h>
 #include "task.h"
-#include <stdint.h>
-
 typedef struct
 {
     uint8_t head;

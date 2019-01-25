@@ -4,11 +4,7 @@
  *  Created on: Jan 25, 2019
  *      Author: Abdullah
  */
-#include <msp430.h>
-#include "task.h"
 #include "fifo_scheduler.h"
-#include <stdint.h>
-
 
 task fifoGet(fifo* f)
 {
