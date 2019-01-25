@@ -9,7 +9,11 @@
  * Membros da dupla:
  *      Anderson Barros Rodrigues - 13/0141046
  *      Abdullah Zaiter - 15/0089392
- *
+ * Conseguimos concluir todo o trabalho:
+ *      - inclusão de tasks
+ *      - escalonador de prioridades
+ *      - finalização de tasks
+ *      - task idle com modo low power
  */
 
 __attribute__ ((naked))
