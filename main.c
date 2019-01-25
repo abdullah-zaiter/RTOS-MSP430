@@ -1,81 +1,12 @@
-#include <msp430.h> 
+
+#include <msp430.h>
 #include "inc/clock.h"
 #include "inc/pmm.h"
+#include "inc/fifo_scheduler.h"
 
 /**
  * main.c
  */
-
-#define MAX_TASKS 8
-
-#define MAX_PRIORITY 0
-#define MID_PRIORITY 1
-#define MIN_PRIORITY 2
-
-
-typedef struct
-{
-    void (*p_task) (void);
-    uint16_t* p_stack;
-    uint8_t pid;
-    uint8_t priority;
-    uint16_t quantum;
-    uint8_t finished;
-}task;
-
-typedef struct
-{
-    uint8_t head;
-    uint8_t tail;
-    uint8_t size;
-    task tasksfifo[MAX_TASKS];
-}fifo;
-
-fifo fifos[3];
-
-uint32_t  scheduling_algorithm_sp;
-
-task running_task;
-
-task fifoGet(fifo* f)
-{
-    task aux = f->tasksfifo[f->head];
-    f->size--;
-    f->head = (f->head+1) % MAX_TASKS;
-    return aux;
-}
-
-void fifoPut(fifo* f, task t)
-{
-    f->tasksfifo[f->tail] = t;
-    f->size++;
-    f->tail = (f->tail+1) % MAX_TASKS;
-}
-
-void scheduler(void)
-{
-    static uint16_t quantum = 100;
-    if(!(running_task.finished))
-    {
-        if(--quantum)
-        {
-            return;
-        }
-        else
-        {
-            fifoPut(&fifos[running_task.priority], running_task);
-        }
-    }
-    for(uint8_t i = MAX_PRIORITY; i<=MIN_PRIORITY ; i++)
-    {
-        if(fifos[i].size>0)
-        {
-            running_task = fifoGet(&fifos[i]);
-            quantum = running_task.quantum;
-            break;
-        }
-    }
-}
 
 __attribute__ ((naked))
 __attribute__ ((interrupt(WDT_VECTOR)))
@@ -91,35 +22,6 @@ void WDT_ISR(void)
     asm("RETI");
 }
 
-
-
-void registerTask(void (*p_Task), uint8_t priority, uint16_t quantum)
-{
-    static uint8_t pid = 1;
-    if(fifos[priority].size < MAX_TASKS){
-
-        task aux;
-        aux.p_task = p_Task;
-
-        aux.p_stack = (0x3200 + (0x80*(pid)));
-
-        *(-- aux.p_stack) = (uint16_t) (p_Task);
-
-        *(-- aux.p_stack) = (uint16_t) (GIE | (((uint32_t)(p_Task) >> 4) & 0xF000));
-
-        aux.p_stack -= 24;
-        aux.pid = pid;
-        aux.quantum = quantum;
-        aux.finished = 0;
-        aux.priority = priority;
-        fifoPut(&fifos[priority],aux);
-        pid++;
-    }
-    else
-    {
-        return;
-    }
-}
 void taskIDLE(void)
 {
     __low_power_mode_0();
