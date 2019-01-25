@@ -5,6 +5,12 @@
 /**
  * main.c
  */
+/*****************************
+ * Membros da dupla:
+ *      Anderson Barros Rodrigues - 13/0141046
+ *      Abdullah Zaiter - 15/0089392
+ *
+ */
 
 __attribute__ ((naked))
 __attribute__ ((interrupt(WDT_VECTOR)))
